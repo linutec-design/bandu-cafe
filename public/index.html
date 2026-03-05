@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Chiangrai Bandu Café 104 — Loyalty Card</title>
+  <meta name="description" content="สะสมแสตมป์ 10 ดวง รับเครื่องดื่มฟรี 1 แก้ว — Chiangrai Bandu Café 104" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700;800&family=Playfair+Display:ital,wght@1,900&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0a0500;
+      --card: #180e00;
+      --card2: #0f0700;
+      --gold: #e8a820;
+      --gold-b: #f5c842;
+      --gold-d: #a07010;
+      --text: #ffffff;
+      --text-dim: rgba(255, 255, 255, 0.55);
+      --text-mute: rgba(255, 255, 255, 0.22);
+      --green: #52d68a;
+      --red: #f07070;
+      --border: rgba(200, 150, 20, 0.28);
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'Sarabun', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Animations ─────────────────────────── */
+    @keyframes floatCup {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(-3deg)
+      }
+
+      50% {
+        transform: translateY(-12px) rotate(3deg)
+      }
+    }
+
+    @keyframes glowRing {
+
+      0%,
+      100% {
+        opacity: .3;
+        transform: translate(-50%, -50%) scale(1)
+      }
+
+      50% {
+        opacity: .7;
+        transform: translate(-50%, -50%) scale(1.05)
+      }
+    }
+
+    @keyframes shimmerText {
+      0% {
+        background-position: 0%
+      }
+
+      100% {
+        background-position: 200%
+      }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-12px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(-50%)
+      }
+    }
+
+    @keyframes pulseGold {
+
+      0%,
+      100% {
+        box-shadow: 0 6px 24px rgba(232, 168, 32, .35)
+      }
+
+      50% {
+        box-shadow: 0 6px 40px rgba(232, 168, 32, .7)
+      }
+    }
+
+    @keyframes pendingPulse {
+
+      0%,
+      100% {
+        opacity: .6
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .3
+      }
+    }
+
+    @keyframes floatSmall {
+
+      0%,
+      100% {
+        transform: translateY(0)
+      }
+
+      50% {
+        transform: translateY(-7px)
+      }
+    }
+
+    /* ── Screens ────────────────────────────── */
+    .screen {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Shared card ────────────────────────── */
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: linear-gradient(145deg, var(--card), var(--card2));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px 22px;
+      box-shadow: 0 0 0 1px rgba(200, 150, 20, .08), 0 24px 70px rgba(0, 0, 0, .6);
+      animation: fadeUp .45s ease both;
+    }
+
+    /* ── Input / Button ─────────────────────── */
+    input[type=text],
+    input[type=password] {
+      width: 100%;
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      color: var(--text);
+      font-size: 17px;
+      font-family: 'Sarabun', sans-serif;
+      transition: border-color .2s, background .2s;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: rgba(200, 150, 20, .7);
+      background: rgba(255, 255, 255, .08);
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, .25);
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 99px;
+      padding: 15px;
+      font-weight: 900;
+      font-size: 16px;
+      font-family: 'Sarabun', sans-serif;
+      cursor: pointer;
+      transition: opacity .2s, transform .15s;
+      letter-spacing: .5px;
+    }
+
+    .btn:hover {
+      opacity: .88;
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: scale(.97);
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold-d), var(--gold-b));
+      color: #0a0500;
+      box-shadow: 0 6px 20px rgba(232, 168, 32, .4);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-mute);
+      border: 1px solid rgba(200, 150, 20, .2);
+      padding: 9px 22px;
+      font-size: 12px;
+      width: auto;
+    }
+
+    .btn-sm {
+      padding: 9px 18px;
+      font-size: 13px;
+      width: auto;
+    }
+
+    .btn-green {
+      background: linear-gradient(135deg, #1a6a35, var(--green));
+      color: #0a0500;
+      box-shadow: 0 3px 12px rgba(82, 214, 138, .35);
+    }
+
+    .btn-red {
+      background: rgba(240, 112, 112, .12);
+      color: var(--red);
+      border: 1px solid rgba(240, 112, 112, .4);
+    }
+
+    /* ── Label ──────────────────────────────── */
+    .label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--gold-d);
+      text-transform: uppercase;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    /* ── Toast ──────────────────────────────── */
+    #toast {
+      position: fixed;
+      top: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 11px 26px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      z-index: 9999;
+      white-space: nowrap;
+      backdrop-filter: blur(12px);
+      animation: toastIn .35s cubic-bezier(.17, .67, .35, 1.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .4);
+      display: none;
+    }
+
+    /* ── Glow orb ───────────────────────────── */
+    .glow-orb {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(200, 150, 20, .15) 0%, transparent 70%);
+      pointer-events: none;
+      border-radius: 50%;
+    }
+
+    /* ── Logo / header ──────────────────────── */
+    .logo-cup {
+      font-size: 72px;
+      display: block;
+      position: relative;
+      z-index: 2;
+      animation: floatCup 4s ease-in-out infinite;
+      filter: drop-shadow(0 0 30px rgba(232, 168, 32, .8)) drop-shadow(0 0 60px rgba(200, 100, 0, .4));
+    }
+
+    .logo-small {
+      font-size: 50px;
+      animation: floatSmall 3.5s ease-in-out infinite;
+      display: inline-block;
+      filter: drop-shadow(0 0 18px rgba(232, 168, 32, .6));
+    }
+
+    .shimmer-text {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 900;
+      background: linear-gradient(90deg, var(--gold-d), var(--gold-b), var(--gold-d));
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmerText 3s linear infinite;
+    }
+
+    /* ── Stamp grid ─────────────────────────── */
+    .stamp-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .stamp-cell {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: all .5s cubic-bezier(.17, .67, .35, 1.3);
+    }
+
+    .stamp-cell.empty {
+      background: rgba(255, 255, 255, .03);
+      border: 2px dashed rgba(200, 150, 20, .22);
+      transform: scale(.95);
+    }
+
+    .stamp-cell.filled {
+      background: radial-gradient(circle at 35% 35%, #2a1800, #1a0d00);
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 14px rgba(232, 168, 32, .35), inset 0 1px 3px rgba(255, 200, 60, .15);
+      transform: scale(1);
+    }
+
+    /* ── Progress bar ───────────────────────── */
+    .progress-wrap {
+      height: 6px;
+      background: rgba(255, 255, 255, .06);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold-d), var(--gold-b));
+      border-radius: 99px;
+      transition: width .8s cubic-bezier(.17, .67, .35, 1.1);
+    }
+
+    /* ── Stat cards ─────────────────────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, .03);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+
+    .stat-card.highlight {
+      background: rgba(200, 150, 20, .1);
+      border-color: var(--gold);
+    }
+
+    /* ── User row (admin) ───────────────────── */
+    .user-row {
+      background: rgba(255, 255, 255, .03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .user-row.full {
+      border-color: rgba(82, 214, 138, .3);
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #2a1500, #1a0d00);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .avatar-lg {
+      width: 44px;
+      height: 44px;
+      font-size: 20px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── Pending request row ────────────────── */
+    .req-row {
+      background: rgba(200, 150, 20, .07);
+      border: 1px solid rgba(200, 150, 20, .22);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+      animation: fadeUp .3s ease;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Toast -->
+  <div id="toast"></div>
+
+  <!-- ══════════════════ LOGIN SCREEN ══════════════════ -->
+  <div id="screen-login" class="screen active" style="justify-content:center; padding:32px 20px;">
+    <div class="glow-orb"></div>
+
+    <!-- Logo -->
+    <div style="text-align:center; margin-bottom:36px; animation:fadeUp .6s ease;">
+      <div style="position:relative; display:inline-block; margin-bottom:16px;">
+        <div class="glow-ring"
+          style="position:absolute;top:50%;left:50%;width:140px;height:140px;border-radius:50%;border:1px solid rgba(200,150,20,.18);animation:glowRing 3s ease-in-out infinite;">
+        </div>
+        <div class="glow-ring"
+          style="position:absolute;top:50%;left:50%;width:200px;height:200px;border-radius:50%;border:1px solid rgba(200,150,20,.18);animation:glowRing 3s ease-in-out .6s infinite;">
+        </div>
+        <div class="glow-ring"
+          style="position:absolute;top:50%;left:50%;width:260px;height:260px;border-radius:50%;border:1px solid rgba(200,150,20,.18);animation:glowRing 3s ease-in-out 1.2s infinite;">
+        </div>
+        <span class="logo-cup">☕</span>
+      </div>
+      <div
+        style="font-size:11px;letter-spacing:6px;color:var(--gold-d);text-transform:uppercase;font-weight:700;margin-bottom:6px;">
+        ✦ Loyalty Card ✦</div>
+      <h1 class="shimmer-text" style="font-size:32px;line-height:1.15;margin-bottom:4px;">
+        Chiangrai Bandu Café <span
+          style="font-family:'Sarabun',sans-serif;font-size:26px;letter-spacing:2px;">104</span>
+      </h1>
+      <p style="font-size:14px;color:var(--text-dim);font-weight:300;letter-spacing:.5px;">สะสม 10 ดวง รับเครื่องดื่มฟรี
+        1 แก้ว 🎁</p>
+    </div>
+
+    <!-- Login card -->
+    <div class="card" style="max-width:400px;">
+      <label class="label" for="login-name">ชื่อของคุณ</label>
+      <input id="login-name" type="text" placeholder="กรอกชื่อ เพื่อเข้าสู่ระบบ..." />
+      <p id="login-err" style="color:var(--red);font-size:12px;margin-top:8px;min-height:18px;"></p>
+      <button class="btn btn-gold" id="login-btn" onclick="doLogin()">เข้าสู่ระบบ →</button>
+      <div style="text-align:center;margin-top:22px;padding-top:20px;border-top:1px solid rgba(200,150,20,.15);">
+        <button class="btn btn-ghost" onclick="showScreen('screen-owner-login')">🔑 เจ้าของร้าน</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ USER SCREEN ══════════════════ -->
+  <div id="screen-user" class="screen" style="padding:24px 16px 40px;">
+
+    <!-- Top bar -->
+    <div
+      style="width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+      <div>
+        <div style="font-size:10px;color:var(--text-mute);letter-spacing:3px;text-transform:uppercase;">สวัสดีคุณ</div>
+        <div id="user-greeting" style="font-size:19px;font-weight:800;"></div>
+      </div>
+      <button class="btn btn-ghost" onclick="doLogout()">ออก</button>
+    </div>
+
+    <!-- Sub-header -->
+    <div style="text-align:center;margin-bottom:20px;animation:fadeUp .4s ease;">
+      <div style="font-size:11px;letter-spacing:5px;color:var(--gold-d);text-transform:uppercase;font-weight:700;">✦
+        Loyalty Card ✦</div>
+      <h2 class="shimmer-text" style="font-size:24px;margin:4px 0;">Chiangrai Bandu Café 104</h2>
+    </div>
+
+    <!-- Main card -->
+    <div class="card">
+      <!-- Reward banner (hidden by default) -->
+      <div id="reward-banner"
+        style="display:none;background:linear-gradient(135deg,rgba(82,214,138,.12),rgba(30,100,60,.15));border:1px solid var(--green);border-radius:16px;padding:16px 18px;margin-bottom:22px;display:none;align-items:center;gap:14px;">
+        <div style="font-size:38px;">🎁</div>
+        <div style="flex:1;">
+          <div style="font-size:10px;color:var(--green);letter-spacing:3px;font-weight:700;">ยินดีด้วย!</div>
+          <div style="font-size:16px;font-weight:800;">สะสมครบ 10 ดวงแล้ว!</div>
+          <div style="font-size:12px;color:var(--text-dim);">แจ้งพนักงานเพื่อรับฟรี 1 แก้ว</div>
+        </div>
+        <button class="btn btn-green btn-sm" onclick="doClaimReward()">ใช้รางวัล</button>
+      </div>
+
+      <!-- Cup -->
+      <div style="text-align:center;margin-bottom:6px;">
+        <span class="logo-small">☕</span>
+        <div style="font-size:13px;color:var(--text-dim);margin-top:4px;font-weight:300;">บัตรสะสมแสตมป์ของคุณ</div>
+      </div>
+
+      <!-- Stamps -->
+      <div class="stamp-grid" id="stamp-grid"></div>
+
+      <!-- Progress -->
+      <div style="margin-bottom:24px;">
+        <div class="progress-wrap">
+          <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span id="progress-label" style="font-size:12px;color:var(--text-mute);"></span>
+          <span id="progress-count" style="font-size:13px;font-weight:800;color:var(--gold);"></span>
+        </div>
+      </div>
+
+      <!-- Action area -->
+      <div id="user-action"></div>
+
+      <!-- Redeemed count -->
+      <div id="redeemed-info" style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-mute);"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ OWNER LOGIN ══════════════════ -->
+  <div id="screen-owner-login" class="screen" style="justify-content:center;padding:32px 20px;">
+    <div style="width:100%;max-width:380px;margin-bottom:16px;animation:fadeUp .3s ease;">
+      <button class="btn btn-ghost" onclick="showScreen('screen-login')">← กลับ</button>
+    </div>
+    <div class="card" style="max-width:380px;">
+      <div style="text-align:center;margin-bottom:26px;">
+        <div style="font-size:44px;margin-bottom:8px;">🔑</div>
+        <h2 style="font-size:22px;font-weight:800;">เจ้าของร้าน</h2>
+        <p style="font-size:13px;color:var(--text-dim);margin-top:4px;font-weight:300;">Chiangrai Bandu Café 104</p>
+      </div>
+      <label class="label" for="owner-pw">รหัสผ่าน</label>
+      <input id="owner-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doOwnerLogin()" />
+      <p id="owner-err" style="color:var(--red);font-size:12px;margin-top:8px;min-height:18px;"></p>
+      <button class="btn btn-gold" style="margin-top:4px;" onclick="doOwnerLogin()">เข้าสู่ระบบ</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════ ADMIN SCREEN ══════════════════ -->
+  <div id="screen-admin" class="screen" style="padding:24px 16px 48px;">
+
+    <!-- Top bar -->
+    <div
+      style="width:100%;max-width:480px;display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;">
+      <div>
+        <div style="font-size:10px;color:var(--text-mute);letter-spacing:3px;">ADMIN</div>
+        <div style="font-size:20px;font-weight:800;color:var(--gold);">🔑 Chiangrai Bandu Café 104</div>
+      </div>
+      <button class="btn btn-ghost" onclick="doAdminLogout()">ออก</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid" id="admin-stats"></div>
+
+    <!-- Pending requests -->
+    <div
+      style="width:100%;max-width:480px;background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:20px;padding:22px 20px;margin-bottom:14px;animation:fadeUp .35s ease;"
+      id="pending-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:0;" id="pending-header">
+        <div id="pending-count-badge"
+          style="width:30px;height:30px;background:rgba(255,255,255,.07);border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:var(--text-mute);">
+          0</div>
+        <div style="font-size:15px;font-weight:800;">คำขอแสตมป์ที่รอการอนุมัติ</div>
+        <div id="pending-blink"
+          style="display:none;margin-left:auto;width:8px;height:8px;background:var(--gold-b);border-radius:50%;box-shadow:0 0 8px var(--gold);animation:blink 1.5s ease infinite;">
+        </div>
+      </div>
+      <div id="pending-list" style="margin-top:0;"></div>
+    </div>
+
+    <!-- QR Code section -->
+    <div
+      style="width:100%;max-width:480px;background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:20px;padding:22px 20px;margin-bottom:14px;animation:fadeUp .45s ease;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="font-size:15px;font-weight:800;">📱 QR Code สำหรับลูกค้า</div>
+        <a id="qr-fullscreen-btn" href="/qr" target="_blank"
+          style="background:rgba(200,150,20,.12);color:var(--gold);border:1px solid rgba(200,150,20,.3);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;text-decoration:none;">เต็มจอ
+          ↗</a>
+      </div>
+      <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
+        <div id="admin-qr" style="background:#fff;padding:12px;border-radius:12px;flex-shrink:0;"></div>
+        <div>
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">URL ปัจจุบัน:</div>
+          <div id="admin-qr-url" style="font-size:12px;color:var(--gold);word-break:break-all;font-family:monospace;">
+          </div>
+          <div style="font-size:11px;color:var(--text-mute);margin-top:8px;">ให้ลูกค้าสแกน QR เพื่อเข้าสู่บัตรสะสมแสตมป์
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- All users -->
+    <div
+      style="width:100%;max-width:480px;background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:20px;padding:22px 20px;animation:fadeUp .4s ease;">
+      <div style="font-size:15px;font-weight:800;margin-bottom:16px;">👥 ลูกค้าทั้งหมด</div>
+      <div id="all-users-list"></div>
+    </div>
+  </div>
+
+  <script>
+    // ── State ─────────────────────────────────────────────
+    const STAMPS_NEEDED = 10;
+    let currentUser = null;
+    let adminPw = null;
+    let pollTimer = null;
+
+    // ── API ───────────────────────────────────────────────
+    async function api(method, url, body, headers = {}) {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json", ...headers },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      return res.json();
+    }
+
+    // ── Toast ─────────────────────────────────────────────
+    let toastTimer;
+    function showToast(msg, type = "success") {
+      const t = document.getElementById("toast");
+      const colors = {
+        success: ["rgba(82,214,138,.12)", "var(--green)", "var(--green)"],
+        warn: ["rgba(232,168,32,.12)", "var(--gold)", "var(--gold)"],
+        error: ["rgba(240,112,112,.12)", "var(--red)", "var(--red)"],
+      };
+      const [bg, border, color] = colors[type] || colors.success;
+      t.style.cssText = `display:block;background:${bg};border:1px solid ${border};color:${color};`;
+      t.textContent = msg;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { t.style.display = "none"; }, 3000);
+    }
+
+    // ── Screen switch ─────────────────────────────────────
+    function showScreen(id) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      clearInterval(pollTimer);
+    }
+
+    // ── LOGIN ─────────────────────────────────────────────
+    document.getElementById("login-name").addEventListener("keydown", e => {
+      if (e.key === "Enter") doLogin();
+    });
+
+    async function doLogin() {
+      const name = document.getElementById("login-name").value.trim();
+      if (!name) { document.getElementById("login-err").textContent = "กรุณากรอกชื่อ"; return; }
+      document.getElementById("login-err").textContent = "";
+      const data = await api("POST", "/api/login", { name });
+      if (data.ok) {
+        currentUser = name;
+        showScreen("screen-user");
+        renderUserScreen(data.user);
+        pollTimer = setInterval(pollUser, 2500);
+      }
+    }
+
+    function doLogout() {
+      currentUser = null;
+      document.getElementById("login-name").value = "";
+      showScreen("screen-login");
+    }
+
+    // ── USER SCREEN ───────────────────────────────────────
+    async function pollUser() {
+      if (!currentUser) return;
+      const data = await api("GET", `/api/user/${encodeURIComponent(currentUser)}`);
+      if (data.user) renderUserScreen(data.user);
+    }
+
+    function renderUserScreen(u) {
+      const stamps = u.stamps || 0;
+      const isPending = !!u.pending;
+      const canRedeem = stamps >= STAMPS_NEEDED;
+      const pct = Math.min((stamps / STAMPS_NEEDED) * 100, 100);
+
+      document.getElementById("user-greeting").textContent = `${currentUser} 👋`;
+
+      // Stamp grid
+      const grid = document.getElementById("stamp-grid");
+      grid.innerHTML = Array.from({ length: STAMPS_NEEDED }).map((_, i) =>
+        `<div class="stamp-cell ${i < stamps ? "filled" : "empty"}">${i < stamps ? "☕" : ""}</div>`
+      ).join("");
+
+      // Progress
+      document.getElementById("progress-bar").style.width = `${pct}%`;
+      document.getElementById("progress-label").textContent =
+        canRedeem ? "✅ ครบแล้ว!" : `อีก ${STAMPS_NEEDED - stamps} ดวง = ฟรี!`;
+      document.getElementById("progress-count").textContent = `${stamps} / ${STAMPS_NEEDED}`;
+
+      // Reward banner
+      const banner = document.getElementById("reward-banner");
+      banner.style.display = canRedeem ? "flex" : "none";
+
+      // Action area
+      const action = document.getElementById("user-action");
+      if (!canRedeem) {
+        if (isPending) {
+          action.innerHTML = `
+        <div style="text-align:center;background:rgba(200,150,20,.07);border:1px solid rgba(200,150,20,.2);border-radius:16px;padding:18px;animation:pendingPulse 2s ease-in-out infinite;">
+          <div style="font-size:28px;margin-bottom:6px;">⏳</div>
+          <div style="font-size:15px;font-weight:800;color:var(--gold);">รอการอนุมัติจากเจ้าของร้าน</div>
+          <div style="font-size:12px;color:var(--text-mute);margin-top:4px;">กรุณารอสักครู่...</div>
+        </div>`;
+        } else {
+          action.innerHTML = `
+        <button class="btn btn-gold" style="animation:pulseGold 2.5s ease-in-out infinite;font-size:17px;"
+                onclick="doRequestStamp()">☕ ขอแสตมป์</button>`;
+        }
+      } else {
+        action.innerHTML = "";
+      }
+
+      // Redeemed
+      const redInfo = document.getElementById("redeemed-info");
+      redInfo.textContent = (u.redeemed || 0) > 0 ? `🏆 ใช้รางวัลแล้วทั้งหมด ${u.redeemed} ครั้ง` : "";
+    }
+
+    async function doRequestStamp() {
+      const data = await api("POST", "/api/stamp-request", { name: currentUser });
+      if (data.ok) { showToast("ส่งคำขอแล้ว! รอเจ้าของร้านอนุมัติ ☕"); pollUser(); }
+      else if (data.error === "Already pending") showToast("มีคำขอรอการอนุมัติอยู่แล้ว ⏳", "warn");
+      else showToast(data.error || "เกิดข้อผิดพลาด", "error");
+    }
+
+    async function doClaimReward() {
+      const data = await api("POST", "/api/claim-reward", { name: currentUser });
+      if (data.ok) { showToast("🎉 ใช้รางวัลสำเร็จ! ขอบคุณที่ใช้บริการ"); pollUser(); }
+      else showToast(data.error || "เกิดข้อผิดพลาด", "error");
+    }
+
+    // ── OWNER LOGIN ───────────────────────────────────────
+    async function doOwnerLogin() {
+      const pw = document.getElementById("owner-pw").value;
+      const data = await api("POST", "/api/admin/login", { password: pw });
+      if (data.ok) {
+        adminPw = pw;
+        document.getElementById("owner-pw").value = "";
+        document.getElementById("owner-err").textContent = "";
+        showScreen("screen-admin");
+        loadAdminDashboard();
+        initAdminQR();
+        pollTimer = setInterval(loadAdminDashboard, 2000);
+      } else {
+        document.getElementById("owner-err").textContent = "รหัสผ่านไม่ถูกต้อง";
+      }
+    }
+
+    function doAdminLogout() {
+      adminPw = null;
+      showScreen("screen-login");
+    }
+
+    // ── ADMIN DASHBOARD ───────────────────────────────────
+    async function loadAdminDashboard() {
+      const data = await api("GET", "/api/admin/dashboard", null, { "x-admin-pw": adminPw });
+      if (data.error) { doAdminLogout(); return; }
+      renderAdminDashboard(data);
+    }
+
+    function renderAdminDashboard({ users, requests, fullCount, stampsNeeded }) {
+      const stampsNeededN = stampsNeeded || STAMPS_NEEDED;
+
+      // Stats
+      document.getElementById("admin-stats").innerHTML = [
+        { label: "ลูกค้าทั้งหมด", value: users.length, icon: "👥", hl: false },
+        { label: "รอการอนุมัติ", value: requests.length, icon: "⏳", hl: requests.length > 0 },
+        { label: `ครบ ${stampsNeededN} ดวง`, value: fullCount, icon: "🎁", hl: false },
+      ].map(s => `
+    <div class="stat-card ${s.hl ? "highlight" : ""}">
+      <div style="font-size:22px;">${s.icon}</div>
+      <div style="font-size:22px;font-weight:900;color:${s.hl ? "var(--gold-b)" : "var(--text)"};">${s.value}</div>
+      <div style="font-size:10px;color:var(--text-mute);margin-top:2px;">${s.label}</div>
+    </div>`).join("");
+
+      // Pending badge
+      const badge = document.getElementById("pending-count-badge");
+      badge.textContent = requests.length;
+      if (requests.length > 0) {
+        badge.style.background = `linear-gradient(135deg, var(--gold-d), var(--gold-b))`;
+        badge.style.color = "#0a0500";
+      } else {
+        badge.style.background = "rgba(255,255,255,.07)";
+        badge.style.color = "var(--text-mute)";
+      }
+      document.getElementById("pending-blink").style.display = requests.length > 0 ? "block" : "none";
+
+      const pendingHeader = document.getElementById("pending-header");
+      pendingHeader.style.marginBottom = requests.length ? "16px" : "0";
+
+      // Pending list
+      document.getElementById("pending-list").innerHTML = requests.length === 0
+        ? `<div style="text-align:center;color:var(--text-mute);font-size:13px;padding:12px 0;">ยังไม่มีคำขอ ☕</div>`
+        : requests.map(u => `
+      <div class="req-row">
+        <div class="avatar avatar-lg">👤</div>
+        <div style="flex:1;">
+          <div style="font-weight:800;font-size:15px;">${esc(u.name)}</div>
+          <div style="font-size:12px;color:var(--text-dim);">มี ${u.stamps || 0} แสตมป์อยู่</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-green btn-sm" onclick="adminApprove('${esc(u.name)}')">✓ อนุมัติ</button>
+          <button class="btn btn-red btn-sm" onclick="adminDeny('${esc(u.name)}')">✕</button>
+        </div>
+      </div>`).join("");
+
+      // All users
+      document.getElementById("all-users-list").innerHTML = users.length === 0
+        ? `<div style="text-align:center;color:var(--text-mute);font-size:13px;padding:16px 0;">ยังไม่มีลูกค้า</div>`
+        : users.map(u => {
+          const s = u.stamps || 0;
+          const pct = Math.min(s / stampsNeededN * 100, 100);
+          return `
+          <div class="user-row ${s >= stampsNeededN ? "full" : ""}">
+            <div class="avatar">👤</div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                <span style="font-weight:700;font-size:14px;color:${s >= stampsNeededN ? "var(--green)" : "var(--text)"};">
+                  ${esc(u.name)} ${s >= stampsNeededN ? "🎁" : ""}
+                </span>
+                <span style="font-size:12px;color:var(--gold);font-weight:700;">${s}/${stampsNeededN}</span>
+              </div>
+              <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;"></div></div>
+              ${(u.redeemed || 0) > 0 ? `<div style="font-size:10px;color:var(--text-mute);margin-top:3px;">ใช้รางวัล ${u.redeemed} ครั้ง</div>` : ""}
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-ghost" style="padding:5px 10px;font-size:11px;color:var(--gold);border-color:rgba(200,150,20,.3);" onclick="adminAddStamp('${esc(u.name)}')">+☕</button>
+              <button class="btn btn-ghost" style="padding:5px 10px;font-size:11px;" onclick="adminReset('${esc(u.name)}')">รีเซต</button>
+            </div>
+          </div>`;
+        }).join("");
+    }
+
+    // ── Admin actions ─────────────────────────────────────
+    async function adminApprove(name) {
+      const data = await api("POST", "/api/admin/approve", { name }, { "x-admin-pw": adminPw });
+      if (data.ok) { showToast(`✅ อนุมัติแสตมป์ให้ "${name}" แล้ว`); loadAdminDashboard(); }
+    }
+    async function adminDeny(name) {
+      const data = await api("POST", "/api/admin/deny", { name }, { "x-admin-pw": adminPw });
+      if (data.ok) { showToast(`❌ ปฏิเสธคำขอของ "${name}"`, "error"); loadAdminDashboard(); }
+    }
+    async function adminAddStamp(name) {
+      const data = await api("POST", "/api/admin/add-stamp", { name }, { "x-admin-pw": adminPw });
+      if (data.ok) { showToast(`☕ เพิ่มแสตมป์ให้ "${name}" แล้ว`); loadAdminDashboard(); }
+      else showToast(data.error || "เกิดข้อผิดพลาด", "warn");
+    }
+    async function adminReset(name) {
+      if (!confirm(`รีเซต "${name}" จริงหรือ?`)) return;
+      const data = await api("POST", "/api/admin/reset", { name }, { "x-admin-pw": adminPw });
+      if (data.ok) { showToast(`🔄 รีเซต "${name}" แล้ว`, "warn"); loadAdminDashboard(); }
+    }
+
+    // ── QR Code ───────────────────────────────────────────
+    let qrGenerated = false;
+    function initAdminQR() {
+      if (qrGenerated) return;
+      const url = window.location.origin + "/";
+      document.getElementById("admin-qr-url").textContent = url;
+      new QRCode(document.getElementById("admin-qr"), {
+        text: url,
+        width: 120, height: 120,
+        colorDark: "#0a0500",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M,
+      });
+      qrGenerated = true;
+    }
+
+    // ── Util ──────────────────────────────────────────────
+    function esc(str) {
+      return String(str).replace(/[&<>"']/g, c =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+  </script>
+</body>
+
+</html>
